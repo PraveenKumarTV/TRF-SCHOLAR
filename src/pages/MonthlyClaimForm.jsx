@@ -36,7 +36,7 @@ const MonthlyClaimForm = () => {
         monthYearOfAdmission: storedUser.month || '',
         supervisorName: storedUser.Supervisor || '',
         tceRollNo: storedUser.rollno || '',
-        category: storedUser.category || 'General',
+        category: storedUser.category || 'Full-time',
         claimPeriod: {
             month: monthNames[prevMonthDate.getMonth()],
             year: now.getFullYear().toString()
@@ -481,7 +481,7 @@ const MonthlyClaimForm = () => {
 
                     {/* Section 5: Research Progress */}
                     <div className="form-section">
-                        <h3 className="section-title">11. Research Progress in this month</h3>
+                        <h3 className="section-title">11. Research Progress in this month (Attach proofs)</h3>
                         <div className="form-row">
                             <div className="form-group half-width">
                                 <label>No. of Articles Submitted - Conference</label>
@@ -514,7 +514,7 @@ const MonthlyClaimForm = () => {
 
                         <div className="form-row">
                             <div className="form-group">
-                                <label>Progress Description (Attach proofs with supervisor signature)</label>
+                                <label>Progress Description</label>
                                 <textarea rows="4"
                                     value={formData.researchProgress.progressDescription}
                                     onChange={(e) => handleNestedChange('researchProgress', 'progressDescription', e.target.value)}
