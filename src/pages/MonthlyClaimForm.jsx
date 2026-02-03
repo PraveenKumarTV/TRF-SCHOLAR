@@ -204,7 +204,7 @@ const MonthlyClaimForm = () => {
         };
 
         try {
-            const response = await fetch('http://localhost:5000/api/claims', {
+            const response = await fetch('https://trf-scholar.onrender.com/api/claims', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
