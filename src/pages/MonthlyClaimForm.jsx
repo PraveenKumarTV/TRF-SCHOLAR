@@ -29,6 +29,7 @@ const MonthlyClaimForm = () => {
     ];
 
     const [loading, setLoading] = useState(false);
+    const [claimStatus, setClaimStatus] = useState(null);
     const [formData, setFormData] = useState({
         scholarName: storedUser.name || '',
         department: storedUser.dept || '',
@@ -36,10 +37,10 @@ const MonthlyClaimForm = () => {
         monthYearOfAdmission: storedUser.month || '',
         supervisorName: storedUser.Supervisor || '',
         tceRollNo: storedUser.rollno || '',
-        category: storedUser.category || 'General',
+        category: storedUser.category || 'Full-time',
         claimPeriod: {
             month: monthNames[prevMonthDate.getMonth()],
-            year: now.getFullYear().toString()
+            year: prevMonthDate.getFullYear().toString()
         },
         leaveDetails: {
             thisMonth: { cl: 0, llp: 0, od: 0 },
@@ -109,6 +110,34 @@ const MonthlyClaimForm = () => {
             }
         }));
     };
+
+    useEffect(() => {
+        const fetchClaimStatus = async () => {
+            if (!storedUser.email) return;
+            
+            const month = monthNames[prevMonthDate.getMonth()];
+            const year = prevMonthDate.getFullYear().toString();
+
+            try {
+                const response = await fetch(`http://localhost:5000/api/claims/status?email=${storedUser.email}&month=${month}&year=${year}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.submitted) {
+                        setClaimStatus(data.isAllocated ? 'availed' : 'pending');
+                    } else {
+                        setClaimStatus('not_submitted');
+                    }
+                } else {
+                    setClaimStatus('not_submitted');
+                }
+            } catch (error) {
+                console.error("Error fetching claim status:", error);
+                setClaimStatus('not_submitted');
+            }
+        };
+
+        fetchClaimStatus();
+    }, []);
 
     useEffect(() => {
         const handleResize = () => {
@@ -212,6 +241,7 @@ const MonthlyClaimForm = () => {
 
             if (response.ok) {
                 alert('Claim submitted successfully!');
+                setClaimStatus('pending');
             } else {
                 alert('Error submitting claim');
             }
@@ -261,7 +291,7 @@ const MonthlyClaimForm = () => {
                     { path: '/Publications', label: 'My Publications' },
                     { path: '/UpdateBankDetails', label: 'Update Bank Details' },
                     { path: '/MonthlyClaimForm', label: 'Monthly Claim Form' },
-                    { path: '/trf-guidelines', label: 'TRF Guidelines' },
+                    { path: 'https://drive.google.com/file/d/1vht_RfO9R7Ygqam1XZN4AUWv8BXIzPll/view?usp=drive_link', label: 'TRF Guidelines', isExternal:true },
                 ];
             case 'admin':
                 return [
@@ -347,6 +377,20 @@ const MonthlyClaimForm = () => {
                     <h1>Monthly Claim Form</h1>
                 </header>
                 <div className="content-body">
+                    {claimStatus === null ? (
+                        <div style={{ textAlign: 'center', padding: '2rem' }}>Loading...</div>
+                    ) : claimStatus === 'pending' ? (
+                        <div className="card" style={{ padding: '2rem', textAlign: 'center' }}>
+                            <h2 style={{ color: '#f59e0b' }}>Claim Request Pending</h2>
+                            <p>You have already submitted a claim for {formData.claimPeriod.month} {formData.claimPeriod.year}.</p>
+                            <p>Status: <strong>Pending Allocation</strong></p>
+                        </div>
+                    ) : claimStatus === 'availed' ? (
+                        <div className="card" style={{ padding: '2rem', textAlign: 'center' }}>
+                            <h2 style={{ color: '#10b981' }}>Claim Availed</h2>
+                            <p>Your claim for {formData.claimPeriod.month} {formData.claimPeriod.year} has been processed and allocated.</p>
+                        </div>
+                    ) : (
                     <div className="monthly-claim-form-container">
                         <div className="form-header">
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px' }}>
@@ -358,7 +402,7 @@ const MonthlyClaimForm = () => {
                     </div>
                     <h2>Thiagarajar Research Fellowship Claim Form</h2>
                     <p className="claim-period-title">
-                        For the month of {formData.claimPeriod.month} {formData.claimPeriod.year}
+                        For the month of {formData.claimPeriod.month} {formData.claimPeriod.year}, <strong>Attempts Allowed:1</strong>
                     </p>
                 </div>
 
@@ -481,7 +525,7 @@ const MonthlyClaimForm = () => {
 
                     {/* Section 5: Research Progress */}
                     <div className="form-section">
-                        <h3 className="section-title">11. Research Progress in this month</h3>
+                        <h3 className="section-title">11. Research Progress in this month (Attach proofs)</h3>
                         <div className="form-row">
                             <div className="form-group half-width">
                                 <label>No. of Articles Submitted - Conference</label>
@@ -514,7 +558,7 @@ const MonthlyClaimForm = () => {
 
                         <div className="form-row">
                             <div className="form-group">
-                                <label>Progress Description (Attach proofs with supervisor signature)</label>
+                                <label>Progress Description</label>
                                 <textarea rows="4"
                                     value={formData.researchProgress.progressDescription}
                                     onChange={(e) => handleNestedChange('researchProgress', 'progressDescription', e.target.value)}
@@ -717,10 +761,13 @@ const MonthlyClaimForm = () => {
                                     </div>
                                 </div>
                             </div>
+                    
                         </div>
                     </div>
                 </div>
+                    
             </div>
+    )}
                 </div>
             </main>
         </div>

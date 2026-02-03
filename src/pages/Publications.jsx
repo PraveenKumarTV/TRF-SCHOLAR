@@ -16,8 +16,9 @@ const Publications = () => {
     const [compliance, setCompliance] = useState(null);
     const [loading, setLoading] = useState(false);
     const [showAddForm, setShowAddForm] = useState(false);
+    const [editingId, setEditingId] = useState(null);
     
-    const [formData, setFormData] = useState({
+    const initialFormState = {
         category: 'journal',
         title: '',
         authors: '',
@@ -33,7 +34,9 @@ const Publications = () => {
         trfAcknowledgement: false,
         acknowledgementText: '',
         status: 'submitted'
-    });
+    };
+
+    const [formData, setFormData] = useState(initialFormState);
 
     const handleLogout = () => {
         localStorage.removeItem('user');
@@ -143,48 +146,76 @@ const Publications = () => {
         }));
     };
 
+    const handleEdit = (pub) => {
+        setFormData({
+            category: pub.category || 'journal',
+            title: pub.title || '',
+            authors: Array.isArray(pub.authors) ? pub.authors.join(', ') : pub.authors || '',
+            correspondingAuthor: pub.correspondingAuthor || '',
+            venue: pub.venue || '',
+            doi: pub.doi || '',
+            year: pub.year || new Date().getFullYear(),
+            volume: pub.volume || '',
+            issue: pub.issue || '',
+            pages: pub.pages || '',
+            scopusIndexed: pub.scopusIndexed || false,
+            quartile: pub.quartile || '',
+            trfAcknowledgement: pub.trfAcknowledgement || false,
+            acknowledgementText: pub.acknowledgementText || '',
+            status: pub.status || 'submitted'
+        });
+        setEditingId(pub.id);
+        setShowAddForm(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const toggleAddForm = () => {
+        if (showAddForm) {
+            setShowAddForm(false);
+            setEditingId(null);
+            setFormData(initialFormState);
+        } else {
+            setShowAddForm(true);
+            setEditingId(null);
+            setFormData(initialFormState);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
 
         try {
             const authorsArray = formData.authors.split(',').map(a => a.trim());
-            const response = await fetch('http://localhost:5000/publications', {
-                method: 'POST',
+            const payload = {
+                email: storedUser.email,
+                ...formData,
+                authors: authorsArray
+            };
+
+            const url = editingId 
+                ? `http://localhost:5000/publications/${editingId}`
+                : 'http://localhost:5000/publications';
+            
+            const method = editingId ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method: method,
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    email: storedUser.email,
-                    ...formData,
-                    authors: authorsArray
-                }),
+                body: JSON.stringify(payload),
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to add publication');
+                throw new Error(errorData.error || `Failed to ${editingId ? 'update' : 'add'} publication`);
             }
 
-            alert('Publication added successfully!');
+            alert(`Publication ${editingId ? 'updated' : 'added'} successfully!`);
             setShowAddForm(false);
-            setFormData({
-                category: 'journal',
-                title: '',
-                authors: '',
-                correspondingAuthor: '',
-                venue: '',
-                doi: '',
-                year: new Date().getFullYear(),
-                volume: '',
-                issue: '',
-                pages: '',
-                scopusIndexed: false,
-                quartile: '',
-                trfAcknowledgement: false,
-                acknowledgementText: '',
-                status: 'submitted'
-            });
+            setEditingId(null);
+            setFormData(initialFormState);
             fetchPublications();
             fetchStats();
             fetchCompliance();
@@ -306,27 +337,27 @@ const Publications = () => {
                     {/* Statistics Cards */}
                     {stats && (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-                            <div className="stat-card" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
-                                <div className="stat-value">{stats.total}</div>
-                                <div className="stat-label">Total Publications</div>
+                            <div className="stat-card" style={{ background: 'linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%)', color: 'white' }}>
+                                <div className="stat-value" style={{ fontSize: '2rem', fontWeight: 700, color: 'white' }}>{stats.total}</div>
+                                <div className="stat-label" style={{ fontSize: '0.875rem', color: 'white', marginBottom: '0.5rem' }}>Total Publications</div>
                             </div>
                             <div className="stat-card" style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', color: 'white' }}>
                                 <div className="stat-value">{stats.journals}</div>
-                                <div className="stat-label">Journal Papers</div>
+                                <div className="stat-label" style={{color:'black'}}>Journal Papers</div>
                             </div>
                             <div className="stat-card" style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white' }}>
                                 <div className="stat-value">{stats.conferences}</div>
-                                <div className="stat-label">Conference Papers</div>
+                                <div className="stat-label" style={{color:'black'}}>Conference Papers</div>
                             </div>
                             <div className="stat-card" style={{ background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', color: 'white' }}>
                                 <div className="stat-value">{stats.scopusIndexed}</div>
-                                <div className="stat-label">Scopus Indexed</div>
+                                <div className="stat-label" style={{color:'black'}}>Scopus Indexed</div>
                             </div>
                         </div>
                     )}
 
                     {/* Compliance Status */}
-                    {compliance && (
+                    {/* {compliance && (
                         <div className="card" style={{ marginBottom: '2rem' }}>
                             <div className="card-header">
                                 <h3>Publication Compliance Status</h3>
@@ -369,7 +400,7 @@ const Publications = () => {
                                 </div>
                             </div>
                         </div>
-                    )}
+                    )} */}
 
                     <div className="card">
                         <div className="card-header">
@@ -377,15 +408,15 @@ const Publications = () => {
                         </div>
                         <div className="card-body">
                             <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
-                                <button className="btn btn-primary" onClick={() => setShowAddForm(!showAddForm)}>
-                                    {showAddForm ? 'Cancel' : '+ Add Publication'}
+                                <button className="btn btn-primary" onClick={toggleAddForm}>
+                                    {showAddForm ? 'Cancel' : (editingId ? 'Edit Publication' : '+ Add Publication')}
                                 </button>
                             </div>
 
                             {/* Add Publication Form */}
                             {showAddForm && (
                                 <form onSubmit={handleSubmit} style={{ background: '#f9fafb', padding: '1.5rem', borderRadius: '0.5rem', marginBottom: '2rem' }}>
-                                    <h3 style={{ marginBottom: '1rem', marginTop: 0 }}>Add New Publication</h3>
+                                    <h3 style={{ marginBottom: '1rem', marginTop: 0 }}>{editingId ? 'Edit Publication' : 'Add New Publication'}</h3>
 
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                         <div className="form-group">
@@ -476,7 +507,7 @@ const Publications = () => {
 
                                     <div style={{ marginTop: '1rem' }}>
                                         <button type="submit" className="btn btn-primary" disabled={loading}>
-                                            {loading ? 'Adding...' : 'Add Publication'}
+                                            {loading ? (editingId ? 'Updating...' : 'Adding...') : (editingId ? 'Update Publication' : 'Add Publication')}
                                         </button>
                                     </div>
                                 </form>
@@ -534,6 +565,13 @@ const Publications = () => {
                                                         {pub.trfAcknowledgement ? '✓' : '✗'}
                                                     </td>
                                                     <td style={{ textAlign: 'center' }}>
+                                                        <button
+                                                            onClick={() => handleEdit(pub)}
+                                                            className="btn btn-secondary btn-small"
+                                                            style={{ marginRight: '0.5rem' }}
+                                                        >
+                                                            Edit
+                                                        </button>
                                                         <button
                                                             onClick={() => handleDelete(pub.id)}
                                                             className="btn btn-danger btn-small"

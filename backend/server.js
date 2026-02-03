@@ -35,6 +35,32 @@ app.post('/login',(req,res)=>{
     });
 })
 
+app.get('/api/claims/status', async (req, res) => {
+    const { email, month, year } = req.query;
+
+    if (!email || !month || !year) {
+        return res.status(400).json({ message: "Missing required query parameters" });
+    }
+
+    try {
+        const snapshot = await db.collection('claims')
+            .where('user_email', '==', email)
+            .where('claim_month', '==', month)
+            .where('claim_year', '==', year)
+            .get();
+
+        if (snapshot.empty) {
+            return res.json({ submitted: false });
+        }
+
+        const doc = snapshot.docs[0];
+        return res.json({ submitted: true, isAllocated: doc.data().isAllocated || false });
+    } catch (error) {
+        console.error("Error checking claim status:", error);
+        return res.status(500).json({ message: "Server error" });
+    }
+});
+
 app.post('/api/claims', async (req, res) => {
     const {
         user_email,
@@ -160,6 +186,102 @@ app.post('/publications', async (req, res) => {
     } catch (error) {
         console.error('Error adding publication:', error);
         return res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.get('/publications/my-publications', async (req, res) => {
+    const { email } = req.query;
+    if (!email) return res.status(400).json({ error: 'Email is required' });
+    try {
+        const snapshot = await db.collection('Publications').where('email', '==', email).get();
+        const publications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        res.json(publications);
+    } catch (error) {
+        console.error('Error fetching publications:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.get('/publications/stats/my-stats', async (req, res) => {
+    const { email } = req.query;
+    if (!email) return res.status(400).json({ error: 'Email is required' });
+    try {
+        const snapshot = await db.collection('Publications').where('email', '==', email).get();
+        const publications = snapshot.docs.map(doc => doc.data());
+        const stats = {
+            total: publications.length,
+            journals: publications.filter(p => p.category === 'journal').length,
+            conferences: publications.filter(p => p.category === 'conference').length,
+            scopusIndexed: publications.filter(p => p.scopusIndexed).length
+        };
+        res.json(stats);
+    } catch (error) {
+        console.error('Error fetching stats:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.get('/publications/compliance/check', async (req, res) => {
+    const { email } = req.query;
+    if (!email) return res.status(400).json({ error: 'Email is required' });
+    try {
+        const snapshot = await db.collection('Publications').where('email', '==', email).get();
+        const publications = snapshot.docs.map(doc => doc.data());
+        
+        const scopusConferences = publications.filter(p => p.category === 'conference' && p.scopusIndexed).length;
+        const journals = publications.filter(p => p.category === 'journal' && ['Q1', 'Q2', 'Q3'].includes(p.quartile)).length;
+        
+        res.json({
+            scopusConferences: { current: scopusConferences, required: 2, met: scopusConferences >= 2 },
+            journals: { current: journals, required: 1, met: journals >= 1 }
+        });
+    } catch (error) {
+        console.error('Error checking compliance:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.put('/publications/:id', async (req, res) => {
+    const { id } = req.params;
+    const data = req.body;
+    try {
+        await db.collection('Publications').doc(id).update({
+            ...data,
+            updated_at: admin.firestore.FieldValue.serverTimestamp()
+        });
+        res.json({ message: 'Publication updated successfully' });
+    } catch (error) {
+        console.error('Error updating publication:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.delete('/publications/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await db.collection('Publications').doc(id).delete();
+        res.json({ message: 'Publication deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting publication:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.get('/getBankDetails', async (req, res) => {
+    const { email } = req.query;
+    if (!email) {
+        return res.status(400).json({ success: false, message: 'Email is required' });
+    }
+    try {
+        const snapshot = await db.collection('scholarDetails').where('email', '==', email).get();
+        if (snapshot.empty) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+        const userData = snapshot.docs[0].data();
+        return res.status(200).json({ success: true, data: { bankDetails: userData.bankDetails || {} } });
+    } catch (error) {
+        console.error('Error fetching bank details:', error);
+        return res.status(500).json({ success: false, message: 'Server error' });
     }
 });
 

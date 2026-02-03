@@ -13,6 +13,7 @@ const UpdateBankDetails = () => {
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [currentDetails, setCurrentDetails] = useState(null);
     const [formData, setFormData] = useState({
         bank_account: '',
         ifsc_code: '',
@@ -59,6 +60,7 @@ const UpdateBankDetails = () => {
                     const data = await response.json();
                     if (data.success && data.data) {
                         const { bankDetails } = data.data;
+                        setCurrentDetails(bankDetails);
                         setFormData(prev => ({
                             ...prev,
                             bank_account: bankDetails.accountNumber || '',
@@ -233,6 +235,34 @@ const UpdateBankDetails = () => {
                 </header>
 
                 <div className="content-body">
+                    {currentDetails && (
+                        <div className="card" style={{ marginBottom: '2rem' }}>
+                            <div className="card-header">
+                                <h3>Current Bank Details</h3>
+                            </div>
+                            <div className="card-body">
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
+                                    <div>
+                                        <div className="stat-label">Bank Name</div>
+                                        <div style={{ fontSize: '1.1rem', fontWeight: 500, color: '#1f2937' }}>{currentDetails.bankName || '-'}</div>
+                                    </div>
+                                    <div>
+                                        <div className="stat-label">Branch Name</div>
+                                        <div style={{ fontSize: '1.1rem', fontWeight: 500, color: '#1f2937' }}>{currentDetails.branchName || '-'}</div>
+                                    </div>
+                                    <div>
+                                        <div className="stat-label">Account Number</div>
+                                        <div style={{ fontSize: '1.1rem', fontWeight: 500, color: '#1f2937' }}>{currentDetails.accountNumber || '-'}</div>
+                                    </div>
+                                    <div>
+                                        <div className="stat-label">IFSC Code</div>
+                                        <div style={{ fontSize: '1.1rem', fontWeight: 500, color: '#1f2937' }}>{currentDetails.ifscCode || '-'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="card">
                         <div className="card-header">
                             <h3>Bank Account Information</h3>
