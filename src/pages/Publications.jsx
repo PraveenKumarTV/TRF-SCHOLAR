@@ -149,7 +149,7 @@ const Publications = () => {
 
         try {
             const authorsArray = formData.authors.split(',').map(a => a.trim());
-            const response = await fetch('http://localhost:5000/publications', {
+            const response = await fetch('https://trf-scholar.onrender.com/publications', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
