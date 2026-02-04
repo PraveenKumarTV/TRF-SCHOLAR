@@ -4,10 +4,12 @@ const bodyParser=require('body-parser');
 const app=express();
 const {db}=require('./config/firebase.config');
 const {admin}=require('./config/firebase.config');
+const path=require('path');
 const PORT=5000;
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}));
+app.use(path.join(express.static('/dist')));
 app.post('/login',(req,res)=>{
     const {email,password,role}=req.body;
     const snapshot=db.collection("scholarDetails")
