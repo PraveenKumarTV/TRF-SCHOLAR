@@ -493,9 +493,10 @@ const Publications = () => {
 
                                         {formData.category === 'journal' && (
                                             <div className="form-group">
-                                                <label className="form-label">Quartile</label>
+                                                <label className="form-label">Quartile (SCImago Journal Ranking)</label>
                                                 <select name="quartile" value={formData.quartile} onChange={handleChange} className="form-input">
                                                     <option value="">Select Quartile</option>
+                                                    <option value="NA">NA</option>
                                                     <option value="Q1">Q1</option>
                                                     <option value="Q2">Q2</option>
                                                     <option value="Q3">Q3</option>

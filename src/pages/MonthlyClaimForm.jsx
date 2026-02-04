@@ -30,6 +30,7 @@ const MonthlyClaimForm = () => {
 
     const [loading, setLoading] = useState(false);
     const [claimStatus, setClaimStatus] = useState(null);
+    const [pdfGenerated, setPdfGenerated] = useState(false);
     const [formData, setFormData] = useState({
         scholarName: storedUser.name || '',
         department: storedUser.dept || '',
@@ -109,6 +110,7 @@ const MonthlyClaimForm = () => {
                 [field]: !prev.declarations[field]
             }
         }));
+        setPdfGenerated(false);
     };
 
     useEffect(() => {
@@ -208,6 +210,8 @@ const MonthlyClaimForm = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        if (!window.confirm("Are you sure you want to submit the claim?")) return;
+
         if (!formData.declarations.noOtherFellowship ||
             !formData.declarations.abidesGuidelines ||
             !formData.declarations.informationTrue) {
@@ -279,6 +283,7 @@ const MonthlyClaimForm = () => {
         };
 
         html2pdf().set(opt).from(element).save();
+        setPdfGenerated(true);
     };
 
     const getNavigationLinks = () => {
@@ -612,8 +617,8 @@ const MonthlyClaimForm = () => {
                     {/* Form Actions */}
                     <div className="form-actions">
                         {/* <button type="button" onClick={handleSaveDraft} className="btn-secondary" disabled={loading || !(formData.declarations.noOtherFellowship && formData.declarations.abidesGuidelines && formData.declarations.informationTrue)}>Save as Draft</button> */}
-                        <button type="submit" className="btn-primary" disabled={loading || !(formData.declarations.noOtherFellowship && formData.declarations.abidesGuidelines && formData.declarations.informationTrue)}>{loading ? 'Submitting...' : 'Submit Claim'}</button>
                         <button type="button" onClick={generatePDF} className="btn-primary" disabled={!(formData.declarations.noOtherFellowship && formData.declarations.abidesGuidelines && formData.declarations.informationTrue)}>Generate PDF</button>
+                        <button type="submit" className="btn-primary" disabled={loading || !pdfGenerated}>{loading ? 'Submitting...' : 'Submit Claim'}</button>
                     </div>
                 </form>
 
