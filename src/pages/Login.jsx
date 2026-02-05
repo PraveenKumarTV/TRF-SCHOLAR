@@ -14,7 +14,7 @@ const Login = () => {
     const selectedRole = e.target.value;
 
   if (selectedRole === "admin") {
-    window.location.replace("/admin-login");
+    window.location.replace("https://tcetrf.web.app/login");
   }
   }
 
