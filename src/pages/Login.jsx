@@ -36,7 +36,7 @@ const Login = () => {
     console.log("Stored in localStorage:", localStorage.getItem("user"));
 
     if (data.user.role === "admin") {
-      navigate("Dashboard");
+      navigate("https://tcetrf.web.app/login");
     } else {
       navigate("Dashboard");
     }
