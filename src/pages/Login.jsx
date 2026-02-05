@@ -10,13 +10,15 @@ const Login = () => {
 
   const navigate = useNavigate();
 
-  const handleChange=(e)=>{
-    const selectedRole = e.target.value;
+  const handleRoleChange = (e) => {
+  const selectedRole = e.target.value;
+  setRole(selectedRole);
 
-  if (role === "admin") {
+  if (selectedRole === "admin") {
     window.location.replace("https://tcetrf.web.app/login");
   }
-  }
+};
+
 
   const handleSubmit = async (e) => {
   e.preventDefault();
@@ -112,14 +114,15 @@ const Login = () => {
           <div className="form-group">
             <label className="form-label">Login As</label>
             <select
-              className="form-input"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              required
-            >
-              <option value="scholar">Scholar</option>
-              <option value="admin">Admin</option>
-            </select>
+                className="form-input"
+                value={role}
+                onChange={handleRoleChange}
+                required
+              >
+                <option value="scholar">Scholar</option>
+                <option value="admin">Admin</option>
+              </select>
+
           </div>
 
           <button
