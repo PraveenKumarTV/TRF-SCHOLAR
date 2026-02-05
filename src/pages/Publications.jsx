@@ -104,7 +104,7 @@ const Publications = () => {
 
     const fetchPublications = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/publications/my-publications?email=${storedUser.email}`);
+            const response = await fetch(`https://trf-scholar-1.onrender.com/publications/my-publications?email=${storedUser.email}`);
             if (response.ok) {
                 const data = await response.json();
                 setPublications(data);
@@ -116,7 +116,7 @@ const Publications = () => {
 
     const fetchStats = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/publications/stats/my-stats?email=${storedUser.email}`);
+            const response = await fetch(`https://trf-scholar-1.onrender.com/publications/stats/my-stats?email=${storedUser.email}`);
             if (response.ok) {
                 const data = await response.json();
                 setStats(data);
@@ -128,7 +128,7 @@ const Publications = () => {
 
     const fetchCompliance = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/publications/compliance/check?email=${storedUser.email}&fellowshipYear=1&monthsCompleted=12`);
+            const response = await fetch(`https://trf-scholar-1.onrender.com/publications/compliance/check?email=${storedUser.email}&fellowshipYear=1&monthsCompleted=12`);
             if (response.ok) {
                 const data = await response.json();
                 setCompliance(data);
@@ -194,8 +194,8 @@ const Publications = () => {
             };
 
             const url = editingId 
-                ? `http://localhost:5000/publications/${editingId}`
-                : 'http://localhost:5000/publications';
+                ? `https://trf-scholar-1.onrender.com/publications/${editingId}`
+                : 'https://trf-scholar-1.onrender.com/publications';
             
             const method = editingId ? 'PUT' : 'POST';
 
@@ -231,7 +231,7 @@ const Publications = () => {
         if (!window.confirm('Are you sure you want to delete this publication?')) return;
 
         try {
-            const response = await fetch(`http://localhost:5000/publications/${id}`, {
+            const response = await fetch(`https://trf-scholar-1.onrender.com/publications/${id}`, {
                 method: 'DELETE',
             });
 
