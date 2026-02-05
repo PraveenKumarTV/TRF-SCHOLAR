@@ -10,6 +10,14 @@ const Login = () => {
 
   const navigate = useNavigate();
 
+  const handleChange=(e)=>{
+    const selectedRole = e.target.value;
+
+  if (selectedRole === "admin") {
+    window.location.replace("/admin-login");
+  }
+  }
+
   const handleSubmit = async (e) => {
   e.preventDefault();
   setLoading(true);
