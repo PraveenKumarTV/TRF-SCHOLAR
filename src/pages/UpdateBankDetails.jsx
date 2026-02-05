@@ -55,7 +55,7 @@ const UpdateBankDetails = () => {
             if (!storedUser?.email) return;
             try {
                 // Assuming an endpoint exists to get details, otherwise this might need adjustment
-                const response = await fetch(`http://localhost:5000/getBankDetails?email=${storedUser.email}`);
+                const response = await fetch(`https://trf-scholar-1.onrender.com/getBankDetails?email=${storedUser.email}`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.success && data.data) {
@@ -127,7 +127,7 @@ const UpdateBankDetails = () => {
         setError('');
 
         try {
-            const res = await fetch("http://localhost:5000/bankUpdate", {
+            const res = await fetch("https://trf-scholar-1.onrender.com/bankUpdate", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
