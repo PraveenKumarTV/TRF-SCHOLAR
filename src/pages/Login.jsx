@@ -13,7 +13,7 @@ const Login = () => {
   const handleChange=(e)=>{
     const selectedRole = e.target.value;
 
-  if (selectedRole === "admin") {
+  if (role === "admin") {
     window.location.replace("https://tcetrf.web.app/login");
   }
   }
