@@ -75,7 +75,7 @@ const Login = () => {
             <a href="https://tcetrf.web.app/home#guidelines" className="nav-link">Guidelines</a>
             <a href="https://tcetrf.web.app/home#contact" className="nav-link">Contact</a>
             <button onClick={() => navigate('/')} className="login-btn">
-              Login / Apply
+              Login
             </button>
           </nav>
         </div>
