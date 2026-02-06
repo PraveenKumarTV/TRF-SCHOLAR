@@ -111,7 +111,7 @@ const Publications = () => {
 
     const fetchPublications = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/publications/my-publications?email=${storedUser.email}`);
+            const response = await fetch(`https://trf-scholar-2.onrender.com/publications/my-publications?email=${storedUser.email}`);
             if (response.ok) {
                 const data = await response.json();
                 setPublications(data);
@@ -123,7 +123,7 @@ const Publications = () => {
 
     const fetchStats = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/publications/stats/my-stats?email=${storedUser.email}`);
+            const response = await fetch(`https://trf-scholar-2.onrender.com/publications/stats/my-stats?email=${storedUser.email}`);
             if (response.ok) {
                 const data = await response.json();
                 setStats(data);
@@ -135,7 +135,7 @@ const Publications = () => {
 
     const fetchCompliance = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/publications/compliance/check?email=${storedUser.email}&fellowshipYear=1&monthsCompleted=12`);
+            const response = await fetch(`https://trf-scholar-2.onrender.com/publications/compliance/check?email=${storedUser.email}&fellowshipYear=1&monthsCompleted=12`);
             if (response.ok) {
                 const data = await response.json();
                 setCompliance(data);
