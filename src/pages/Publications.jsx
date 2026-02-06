@@ -67,6 +67,13 @@ const Publications = () => {
     const navLinks = getNavigationLinks();
 
     useEffect(() => {
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) {
+            navigate('/');
+        }
+    }, [navigate]);
+
+    useEffect(() => {
         if (storedUser.email) {
             fetchPublications();
             fetchStats();

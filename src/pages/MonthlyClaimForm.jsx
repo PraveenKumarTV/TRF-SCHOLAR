@@ -114,6 +114,13 @@ const MonthlyClaimForm = () => {
     };
 
     useEffect(() => {
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) {
+            navigate('/');
+        }
+    }, [navigate]);
+
+    useEffect(() => {
         const fetchClaimStatus = async () => {
             if (!storedUser.email) return;
             

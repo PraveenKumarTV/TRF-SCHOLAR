@@ -51,6 +51,13 @@ const UpdateBankDetails = () => {
     const navLinks = getNavigationLinks();
 
     useEffect(() => {
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) {
+            navigate('/');
+        }
+    }, [navigate]);
+
+    useEffect(() => {
         const fetchBankDetails = async () => {
             if (!storedUser?.email) return;
             try {

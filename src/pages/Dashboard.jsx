@@ -39,6 +39,13 @@ const Dashboard = () => {
 
     const navLinks = getNavigationLinks();
 
+    useEffect(()=>{
+        const user=JSON.parse(localStorage.getItem('user'));
+        if(!user){
+            navigate('/');
+        }
+    },[navigate]);
+
     useEffect(() => {
         const handleResize = () => {
             const mobile = window.innerWidth < 768;
@@ -126,7 +133,10 @@ const Dashboard = () => {
                     <div className="user-info">
                         {sidebarOpen && (
                             <>
-                                <p className="user-name">{storedUser?.name}</p>
+                                {storedUser && (
+                                    <p className="user-name">{storedUser.name}</p>
+                                    )}
+
                                 <p className="user-role">{storedUser?.role?.toUpperCase()}</p>
                             </>
                         )}
