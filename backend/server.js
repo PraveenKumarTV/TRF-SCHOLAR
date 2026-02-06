@@ -9,10 +9,7 @@ const PORT=5000;
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}));
-app.use(express.static(path.join(__dirname, "../dist")));
-app.use((req, res) => {
-  res.sendFile(path.join(__dirname, "../dist", "index.html"));
-});
+
 
 app.post('/login',(req,res)=>{
     const {email,password,role}=req.body;
@@ -325,6 +322,11 @@ app.post('/bankUpdate', async (req, res) => {
         console.error('Error updating bank details:', error);
         return res.status(500).json({ success: false, message: 'Server error' });
     }
+});
+
+app.use(express.static(path.join(__dirname, "../dist")));
+app.use((req, res) => {
+  res.sendFile(path.join(__dirname, "../dist", "index.html"));
 });
 
 
