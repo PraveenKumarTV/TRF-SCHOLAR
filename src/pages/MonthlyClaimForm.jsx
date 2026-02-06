@@ -132,7 +132,7 @@ const MonthlyClaimForm = () => {
                 if (response.ok) {
                     const data = await response.json();
                     if (data.submitted) {
-                        setClaimStatus(data.isAllocated ? 'availed' : 'pending');
+                        setClaimStatus(data.isAllocated);
                     } else {
                         setClaimStatus('not_submitted');
                     }
@@ -238,7 +238,7 @@ const MonthlyClaimForm = () => {
             claim_amount: formData.claimAmount,
             research_progress: formData.researchProgress,
             trf_workload: formData.workloadDetails,
-            isAllocated: false,
+            isAllocated: 'submitted',
             claim_month: formData.claimPeriod.month,
             claim_year: formData.claimPeriod.year
         };
@@ -252,7 +252,7 @@ const MonthlyClaimForm = () => {
 
             if (response.ok) {
                 alert('Claim submitted successfully!');
-                setClaimStatus('pending');
+                setClaimStatus('submitted');
             } else {
                 alert('Error submitting claim');
             }
@@ -391,16 +391,21 @@ const MonthlyClaimForm = () => {
                 <div className="content-body">
                     {claimStatus === null ? (
                         <div style={{ textAlign: 'center', padding: '2rem' }}>Loading...</div>
-                    ) : claimStatus === 'pending' ? (
+                    ) : claimStatus === 'submitted' ? (
                         <div className="card" style={{ padding: '2rem', textAlign: 'center' }}>
-                            <h2 style={{ color: '#f59e0b' }}>Claim Request Pending</h2>
+                            <h2 style={{ color: '#f59e0b' }}>Claim Request Submitted</h2>
                             <p>You have already submitted a claim for {formData.claimPeriod.month} {formData.claimPeriod.year}.</p>
-                            <p>Status: <strong>Pending Allocation</strong></p>
+                            <p>Status: <strong>Submitted</strong></p>
                         </div>
-                    ) : claimStatus === 'availed' ? (
+                    ) : claimStatus === 'accepted' ? (
                         <div className="card" style={{ padding: '2rem', textAlign: 'center' }}>
-                            <h2 style={{ color: '#10b981' }}>Claim Availed</h2>
-                            <p>Your claim for {formData.claimPeriod.month} {formData.claimPeriod.year} has been processed and allocated.</p>
+                            <h2 style={{ color: '#10b981' }}>Claim Accepted</h2>
+                            <p>Your claim for {formData.claimPeriod.month} {formData.claimPeriod.year} has been accepted.</p>
+                        </div>
+                    ) : claimStatus === 'rejected' ? (
+                        <div className="card" style={{ padding: '2rem', textAlign: 'center' }}>
+                            <h2 style={{ color: '#ef4444' }}>Claim Rejected</h2>
+                            <p>Your claim for {formData.claimPeriod.month} {formData.claimPeriod.year} has been rejected.</p>
                         </div>
                     ) : (
                     <div className="monthly-claim-form-container">
