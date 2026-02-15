@@ -30,6 +30,7 @@ const MonthlyClaimForm = () => {
 
     const [loading, setLoading] = useState(false);
     const [claimStatus, setClaimStatus] = useState(null);
+    const [claimDetails, setClaimDetails] = useState(null);
     const [pdfGenerated, setPdfGenerated] = useState(false);
     const [formData, setFormData] = useState({
         scholarName: storedUser.name || '',
@@ -64,17 +65,9 @@ const MonthlyClaimForm = () => {
             noOtherFellowship: false,
             abidesGuidelines: false,
             informationTrue: false
-        }
+        },
+        resubmissionRemarks: ''
     });
-
-    // Handle file uploads
-    const handleFileChange = (e) => {
-        const { name, files } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: files[0]
-        }));
-    };
 
     // Handle nested field changes
     const handleNestedChange = (section, field, value) => {
@@ -128,11 +121,44 @@ const MonthlyClaimForm = () => {
             const year = prevMonthDate.getFullYear().toString();
 
             try {
-                const response = await fetch(`https://trf-scholar-2.onrender.com/api/claims/status?email=${storedUser.email}&month=${month}&year=${year}`);
+                const response = await fetch(`http://localhost:5000/api/claims/status?email=${storedUser.email}&month=${month}&year=${year}`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.submitted) {
-                        setClaimStatus(data.isAllocated);
+                        setClaimDetails(data.claim);
+                        const claim = data.claim || {};
+                        const statuses = [
+                            claim.isSupervisorApproved || 'pending',
+                            claim.isHodApproved || 'pending',
+                            claim.isDlcApproved || 'pending',
+                            claim.isDeanApproved || 'pending'
+                        ];
+
+                        if (statuses.includes('rejected')) {
+                            setClaimStatus('rejected');
+                            // Populate form data for resubmission
+                            if (claim.leave_details) {
+                                setFormData(prev => ({
+                                    ...prev,
+                                    leaveDetails: {
+                                        ...prev.leaveDetails,
+                                        thisMonth: {
+                                            cl: claim.leave_details.cl || 0,
+                                            llp: claim.leave_details.llp || 0,
+                                            od: claim.leave_details.od || 0
+                                        }
+                                    },
+                                    researchProgress: claim.research_progress || prev.researchProgress,
+                                    workloadDetails: claim.trf_workload || prev.workloadDetails,
+                                    attendanceCertificate: claim.attendance_certificate || prev.attendanceCertificate,
+                                    progressReport: claim.progress_report || prev.progressReport
+                                }));
+                            }
+                        } else if (statuses.every(s => s === 'accepted')) {
+                            setClaimStatus('accepted');
+                        } else {
+                            setClaimStatus('submitted');
+                        }
                     } else {
                         setClaimStatus('not_submitted');
                     }
@@ -240,11 +266,23 @@ const MonthlyClaimForm = () => {
             trf_workload: formData.workloadDetails,
             isAllocated: 'submitted',
             claim_month: formData.claimPeriod.month,
-            claim_year: formData.claimPeriod.year
+            claimId: claimDetails?.id,
+            claim_year: formData.claimPeriod.year,
+            attendance_certificate: formData.attendanceCertificate,
+            progress_report: formData.progressReport,
+            isSupervisorApproved: 'pending',
+            supervisorRejectionReason: null,
+            isHodApproved: 'pending',
+            hodRejectionReason: null,
+            isDlcApproved: 'pending',
+            dlcRejectionReason: null,
+            isDeanApproved: 'pending',
+            deanRejectionReason: null,
+            resubmission_remarks: formData.resubmissionRemarks
         };
 
         try {
-            const response = await fetch('https://trf-scholar-2.onrender.com/api/claims', {
+            const response = await fetch('http://localhost:5000/api/claims', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -253,6 +291,16 @@ const MonthlyClaimForm = () => {
             if (response.ok) {
                 alert('Claim submitted successfully!');
                 setClaimStatus('submitted');
+                setClaimDetails({
+                    isSupervisorApproved: 'pending',
+                    isHodApproved: 'pending',
+                    isDlcApproved: 'pending',
+                    isDeanApproved: 'pending',
+                    supervisorRejectionReason: null,
+                    hodRejectionReason: null,
+                    dlcRejectionReason: null,
+                    deanRejectionReason: null
+                });
             } else {
                 alert('Error submitting claim');
             }
@@ -392,22 +440,70 @@ const MonthlyClaimForm = () => {
                     {claimStatus === null ? (
                         <div style={{ textAlign: 'center', padding: '2rem' }}>Loading...</div>
                     ) : claimStatus === 'submitted' ? (
-                        <div className="card" style={{ padding: '2rem', textAlign: 'center' }}>
-                            <h2 style={{ color: '#f59e0b' }}>Claim Request Submitted</h2>
-                            <p>You have already submitted a claim for {formData.claimPeriod.month} {formData.claimPeriod.year}.</p>
-                            <p>Status: <strong>Submitted</strong></p>
+                        <div className="card" style={{ padding: '2rem' }}>
+                            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                                <h2 style={{ color: '#f59e0b', marginTop: 0 }}>Claim Request Submitted</h2>
+                                <p>You have submitted a claim for {formData.claimPeriod.month} {formData.claimPeriod.year}.</p>
+                            </div>
+                            
+                            <h3 style={{ borderBottom: '1px solid #e5e7eb', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Approval Status</h3>
+                            <div style={{ display: 'grid', gap: '1rem' }}>
+                                {[
+                                    { role: 'Supervisor', status: claimDetails?.isSupervisorApproved || 'pending' },
+                                    { role: 'HoD', status: claimDetails?.isHodApproved || 'pending' },
+                                    { role: 'DLC', status: claimDetails?.isDlcApproved || 'pending' },
+                                    { role: 'Dean', status: claimDetails?.isDeanApproved || 'pending' }
+                                ].map((item, index) => (
+                                    <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', backgroundColor: '#f9fafb', borderRadius: '0.5rem' }}>
+                                        <span style={{ fontWeight: 500 }}>{item.role}</span>
+                                        <span style={{
+                                            backgroundColor: item.status === 'accepted' ? '#dcfce7' : item.status === 'rejected' ? '#fee2e2' : '#fef3c7',
+                                            color: item.status === 'accepted' ? '#166534' : item.status === 'rejected' ? '#991b1b' : '#92400e',
+                                            padding: '0.25rem 0.75rem', borderRadius: '9999px', fontSize: '0.875rem', fontWeight: 500, textTransform: 'capitalize'
+                                        }}>{item.status}</span>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     ) : claimStatus === 'accepted' ? (
                         <div className="card" style={{ padding: '2rem', textAlign: 'center' }}>
                             <h2 style={{ color: '#10b981' }}>Claim Accepted</h2>
                             <p>Your claim for {formData.claimPeriod.month} {formData.claimPeriod.year} has been accepted.</p>
                         </div>
-                    ) : claimStatus === 'rejected' ? (
-                        <div className="card" style={{ padding: '2rem', textAlign: 'center' }}>
-                            <h2 style={{ color: '#ef4444' }}>Claim Rejected</h2>
-                            <p>Your claim for {formData.claimPeriod.month} {formData.claimPeriod.year} has been rejected.</p>
-                        </div>
                     ) : (
+                    <>
+                    {claimStatus === 'rejected' && (
+                        <div className="card" style={{ padding: '1.5rem', marginBottom: '2rem', borderLeft: '4px solid #ef4444', backgroundColor: '#fff' }}>
+                            <h2 style={{ color: '#ef4444', marginTop: 0, fontSize: '1.5rem' }}>Claim Rejected</h2>
+                            <p style={{ marginBottom: '1rem' }}>Your claim for {formData.claimPeriod.month} {formData.claimPeriod.year} was rejected.</p>
+                            {claimDetails?.isSupervisorApproved === 'rejected' && (
+                                <div style={{ backgroundColor: '#fee2e2', padding: '1rem', borderRadius: '0.375rem', color: '#991b1b', marginBottom: '0.5rem' }}>
+                                    <strong>Supervisor Rejected:</strong> {claimDetails.supervisorRejectionReason || 'No reason provided'}
+                                </div>
+                            )}
+                            {claimDetails?.isHodApproved === 'rejected' && (
+                                <div style={{ backgroundColor: '#fee2e2', padding: '1rem', borderRadius: '0.375rem', color: '#991b1b', marginBottom: '0.5rem' }}>
+                                    <strong>HoD Rejected:</strong> {claimDetails.hodRejectionReason || 'No reason provided'}
+                                </div>
+                            )}
+                            {claimDetails?.isDlcApproved === 'rejected' && (
+                                <div style={{ backgroundColor: '#fee2e2', padding: '1rem', borderRadius: '0.375rem', color: '#991b1b', marginBottom: '0.5rem' }}>
+                                    <strong>DLC Rejected:</strong> {claimDetails.dlcRejectionReason || 'No reason provided'}
+                                </div>
+                            )}
+                            {claimDetails?.isDeanApproved === 'rejected' && (
+                                <div style={{ backgroundColor: '#fee2e2', padding: '1rem', borderRadius: '0.375rem', color: '#991b1b', marginBottom: '0.5rem' }}>
+                                    <strong>Dean Rejected:</strong> {claimDetails.deanRejectionReason || 'No reason provided'}
+                                </div>
+                            )}
+                            {claimDetails?.rejectionReason && !claimDetails?.isSupervisorApproved && !claimDetails?.isHodApproved && !claimDetails?.isDlcApproved && !claimDetails?.isDeanApproved && (
+                                <div style={{ backgroundColor: '#fee2e2', padding: '1rem', borderRadius: '0.375rem', color: '#991b1b' }}>
+                                    <strong>Reason:</strong> {claimDetails.rejectionReason}
+                                </div>
+                            )}
+                            <p style={{ marginTop: '1rem', fontSize: '0.875rem', color: '#6b7280' }}>Please correct the details below and resubmit.</p>
+                        </div>
+                    )}
                     <div className="monthly-claim-form-container">
                         <div className="form-header">
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px' }}>
@@ -424,6 +520,23 @@ const MonthlyClaimForm = () => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="monthly-claim-form">
+                    {/* Resubmission Remarks Section */}
+                    {claimStatus === 'rejected' && (
+                        <div className="form-section" style={{ border: '1px solid #ef4444', background: '#fef2f2' }}>
+                            <h3 className="section-title" style={{ color: '#b91c1c' }}>Resubmission Updates</h3>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label style={{ color: '#b91c1c' }}>Updates made after rejection *</label>
+                                    <textarea rows="3"
+                                        value={formData.resubmissionRemarks}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, resubmissionRemarks: e.target.value }))}
+                                        placeholder="Please describe the corrections/updates made based on the rejection reason..."
+                                        required />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Section 1: Particulars of the Scholar */}
                     <div className="form-section">
                         <h3 className="section-title">Particulars of the Scholar</h3>
@@ -497,17 +610,17 @@ const MonthlyClaimForm = () => {
                                     <td>
                                         <input type="number" min="0"
                                             value={formData.leaveDetails.thisMonth.cl}
-                                            onChange={(e) => handleDeepNestedChange('leaveDetails', 'thisMonth', 'cl', e.target.value)} />
+                                            onChange={(e) => handleDeepNestedChange('leaveDetails', 'thisMonth', 'cl', e.target.value)} required />
                                     </td>
                                     <td>
                                         <input type="number" min="0"
                                             value={formData.leaveDetails.thisMonth.llp}
-                                            onChange={(e) => handleDeepNestedChange('leaveDetails', 'thisMonth', 'llp', e.target.value)} />
+                                            onChange={(e) => handleDeepNestedChange('leaveDetails', 'thisMonth', 'llp', e.target.value)} required />
                                     </td>
                                     <td>
                                         <input type="number" min="0"
                                             value={formData.leaveDetails.thisMonth.od}
-                                            onChange={(e) => handleDeepNestedChange('leaveDetails', 'thisMonth', 'od', e.target.value)} />
+                                            onChange={(e) => handleDeepNestedChange('leaveDetails', 'thisMonth', 'od', e.target.value)} required />
                                     </td>
                                 </tr>
                             </tbody>
@@ -527,15 +640,17 @@ const MonthlyClaimForm = () => {
 
                     {/* Section 4: Upload Documents */}
                     <div className="form-section">
-                        <h3 className="section-title">10. Upload Documents</h3>
+                        <h3 className="section-title">10. Upload Documents (Drive Links) 
+                            <a href="https://drive.google.com/" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.85rem', marginLeft: '10px', color: '#2563eb', textDecoration: 'underline' }}>Open Google Drive ↗</a>
+                        </h3>
                         <div className="form-row">
                             <div className="form-group half-width">
-                                <label>Attendance Certificate (PDF)</label>
-                                <input type="file" name="attendanceCertificate" accept=".pdf" onChange={handleFileChange} disabled />
+                                <label>Attendance Certificate Link *</label>
+                                <input type="text" name="attendanceCertificate" value={formData.attendanceCertificate || ''} onChange={(e) => setFormData(prev => ({ ...prev, attendanceCertificate: e.target.value }))} placeholder="Paste Google Drive link" required />
                             </div>
                             <div className="form-group half-width">
-                                <label>Progress Report (PDF)</label>
-                                <input type="file" name="progressReport" accept=".pdf" onChange={handleFileChange} disabled />
+                                <label>Progress Report Link *</label>
+                                <input type="text" name="progressReport" value={formData.progressReport || ''} onChange={(e) => setFormData(prev => ({ ...prev, progressReport: e.target.value }))} placeholder="Paste Google Drive link" required />
                             </div>
                         </div>
                     </div>
@@ -548,13 +663,13 @@ const MonthlyClaimForm = () => {
                                 <label>No. of Articles Submitted - Conference</label>
                                 <input type="number" min="0"
                                     value={formData.researchProgress.articlesSubmitted.conference}
-                                    onChange={(e) => handleDeepNestedChange('researchProgress', 'articlesSubmitted', 'conference', e.target.value)} />
+                                    onChange={(e) => handleDeepNestedChange('researchProgress', 'articlesSubmitted', 'conference', e.target.value)} required />
                             </div>
                             <div className="form-group half-width">
                                 <label>No. of Articles Submitted - Journal</label>
                                 <input type="number" min="0"
                                     value={formData.researchProgress.articlesSubmitted.journal}
-                                    onChange={(e) => handleDeepNestedChange('researchProgress', 'articlesSubmitted', 'journal', e.target.value)} />
+                                    onChange={(e) => handleDeepNestedChange('researchProgress', 'articlesSubmitted', 'journal', e.target.value)} required />
                             </div>
                         </div>
 
@@ -563,23 +678,23 @@ const MonthlyClaimForm = () => {
                                 <label>No. of Articles Published - Conference</label>
                                 <input type="number" min="0"
                                     value={formData.researchProgress.articlesPublished.conference}
-                                    onChange={(e) => handleDeepNestedChange('researchProgress', 'articlesPublished', 'conference', e.target.value)} />
+                                    onChange={(e) => handleDeepNestedChange('researchProgress', 'articlesPublished', 'conference', e.target.value)} required />
                             </div>
                             <div className="form-group half-width">
                                 <label>No. of Articles Published - Journal</label>
                                 <input type="number" min="0"
                                     value={formData.researchProgress.articlesPublished.journal}
-                                    onChange={(e) => handleDeepNestedChange('researchProgress', 'articlesPublished', 'journal', e.target.value)} />
+                                    onChange={(e) => handleDeepNestedChange('researchProgress', 'articlesPublished', 'journal', e.target.value)} required />
                             </div>
                         </div>
 
                         <div className="form-row">
                             <div className="form-group">
-                                <label>Progress Description</label>
+                                <label>Progress Description *</label>
                                 <textarea rows="4"
                                     value={formData.researchProgress.progressDescription}
                                     onChange={(e) => handleNestedChange('researchProgress', 'progressDescription', e.target.value)}
-                                    placeholder="Describe your research progress this month..." />
+                                    placeholder="Describe your research progress this month..." required />
                             </div>
                         </div>
                     </div>
@@ -592,13 +707,13 @@ const MonthlyClaimForm = () => {
                                 <label>No. of Lab/ Tutorial hours per week</label>
                                 <input type="number" min="0" max="8"
                                     value={formData.workloadDetails.labHours}
-                                    onChange={(e) => handleNestedChange('workloadDetails', 'labHours', e.target.value)} />
+                                    onChange={(e) => handleNestedChange('workloadDetails', 'labHours', e.target.value)} required />
                             </div>
                             <div className="form-group half-width">
                                 <label>No. of Dept. work Load per week</label>
                                 <input type="number" min="0" max="8"
                                     value={formData.workloadDetails.deptLoad}
-                                    onChange={(e) => handleNestedChange('workloadDetails', 'deptLoad', e.target.value)} />
+                                    onChange={(e) => handleNestedChange('workloadDetails', 'deptLoad', e.target.value)} required />
                             </div>
                         </div>
                     </div>
@@ -782,10 +897,11 @@ const MonthlyClaimForm = () => {
                         </div>
                     </div>
                 </div>
-                    
             </div>
+            </>
     )}
                 </div>
+                
             </main>
         </div>
     );
