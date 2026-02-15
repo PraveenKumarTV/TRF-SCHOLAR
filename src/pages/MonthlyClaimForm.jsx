@@ -131,7 +131,7 @@ const MonthlyClaimForm = () => {
                             claim.isSupervisorApproved || 'pending',
                             claim.isHodApproved || 'pending',
                             claim.isDlcApproved || 'pending',
-                            claim.isDeanApproved || 'pending'
+                            claim.isadminApproved || 'pending'
                         ];
 
                         if (statuses.includes('rejected')) {
@@ -276,8 +276,8 @@ const MonthlyClaimForm = () => {
             hodRejectionReason: null,
             isDlcApproved: 'pending',
             dlcRejectionReason: null,
-            isDeanApproved: 'pending',
-            deanRejectionReason: null,
+            isadminApproved: 'pending',
+            adminRejectionReason: null,
             resubmission_remarks: formData.resubmissionRemarks
         };
 
@@ -295,11 +295,11 @@ const MonthlyClaimForm = () => {
                     isSupervisorApproved: 'pending',
                     isHodApproved: 'pending',
                     isDlcApproved: 'pending',
-                    isDeanApproved: 'pending',
+                    isadminApproved: 'pending',
                     supervisorRejectionReason: null,
                     hodRejectionReason: null,
                     dlcRejectionReason: null,
-                    deanRejectionReason: null
+                    adminRejectionReason: null
                 });
             } else {
                 alert('Error submitting claim');
@@ -452,7 +452,7 @@ const MonthlyClaimForm = () => {
                                     { role: 'Supervisor', status: claimDetails?.isSupervisorApproved || 'pending' },
                                     { role: 'HoD', status: claimDetails?.isHodApproved || 'pending' },
                                     { role: 'DLC', status: claimDetails?.isDlcApproved || 'pending' },
-                                    { role: 'Dean', status: claimDetails?.isDeanApproved || 'pending' }
+                                    { role: 'Dean', status: claimDetails?.isadminApproved || 'pending' }
                                 ].map((item, index) => (
                                     <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', backgroundColor: '#f9fafb', borderRadius: '0.5rem' }}>
                                         <span style={{ fontWeight: 500 }}>{item.role}</span>
@@ -491,12 +491,12 @@ const MonthlyClaimForm = () => {
                                     <strong>DLC Rejected:</strong> {claimDetails.dlcRejectionReason || 'No reason provided'}
                                 </div>
                             )}
-                            {claimDetails?.isDeanApproved === 'rejected' && (
+                            {claimDetails?.isadminApproved === 'rejected' && (
                                 <div style={{ backgroundColor: '#fee2e2', padding: '1rem', borderRadius: '0.375rem', color: '#991b1b', marginBottom: '0.5rem' }}>
-                                    <strong>Dean Rejected:</strong> {claimDetails.deanRejectionReason || 'No reason provided'}
+                                    <strong>Dean Rejected:</strong> {claimDetails.adminRejectionReason || 'No reason provided'}
                                 </div>
                             )}
-                            {claimDetails?.rejectionReason && !claimDetails?.isSupervisorApproved && !claimDetails?.isHodApproved && !claimDetails?.isDlcApproved && !claimDetails?.isDeanApproved && (
+                            {claimDetails?.rejectionReason && !claimDetails?.isSupervisorApproved && !claimDetails?.isHodApproved && !claimDetails?.isDlcApproved && !claimDetails?.isadminApproved && (
                                 <div style={{ backgroundColor: '#fee2e2', padding: '1rem', borderRadius: '0.375rem', color: '#991b1b' }}>
                                     <strong>Reason:</strong> {claimDetails.rejectionReason}
                                 </div>
