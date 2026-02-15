@@ -9,8 +9,7 @@ const PORT=5000;
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}));
-
-
+//app.use(path.join(express.static('/dist')));
 app.post('/login',(req,res)=>{
     const {email,password,role}=req.body;
     const snapshot=db.collection("scholarDetails")
@@ -57,7 +56,7 @@ app.get('/api/claims/status', async (req, res) => {
         }
 
         const doc = snapshot.docs[0];
-        return res.json({ submitted: true, isAllocated: doc.data().isAllocated || false });
+        return res.json({ submitted: true, isAllocated: doc.data().isAllocated || false, claim: { id: doc.id, ...doc.data() } });
     } catch (error) {
         console.error("Error checking claim status:", error);
         return res.status(500).json({ message: "Server error" });
@@ -73,7 +72,18 @@ app.post('/api/claims', async (req, res) => {
         trf_workload,
         isAllocated,
         claim_month,
-        claim_year
+        claim_year,
+        attendance_certificate,
+        progress_report,
+        isSupervisorApproved,
+        supervisorRejectionReason,
+        isHodApproved,
+        hodRejectionReason,
+        isDlcApproved,
+        dlcRejectionReason,
+        isDeanApproved,
+        deanRejectionReason,
+        resubmission_remarks
     } = req.body;
 
     if (!user_email || !claim_month || !claim_year) {
@@ -90,16 +100,40 @@ app.post('/api/claims', async (req, res) => {
             isAllocated: isAllocated || false,
             claim_month,
             claim_year,
+            attendance_certificate: attendance_certificate || null,
+            progress_report: progress_report || null,
+            isSupervisorApproved: isSupervisorApproved || 'pending',
+            supervisorRejectionReason: supervisorRejectionReason || null,
+            isHodApproved: isHodApproved || 'pending',
+            hodRejectionReason: hodRejectionReason || null,
+            isDlcApproved: isDlcApproved || 'pending',
+            dlcRejectionReason: dlcRejectionReason || null,
+            isDeanApproved: isDeanApproved || 'pending',
+            deanRejectionReason: deanRejectionReason || null,
+            resubmission_remarks: resubmission_remarks || null,
             created_at: admin.firestore.FieldValue.serverTimestamp()
         };
 
-        // Save to 'claims' collection
-        const docRef = await db.collection('claims').add(newClaim);
+        // Check if claim already exists for this user, month, and year
+        const snapshot = await db.collection('claims')
+            .where('user_email', '==', user_email)
+            .where('claim_month', '==', claim_month)
+            .where('claim_year', '==', claim_year)
+            .get();
 
-        return res.status(201).json({
-            message: "Claim submitted successfully",
-            claimId: docRef.id
-        });
+        if (!snapshot.empty) {
+            // Update existing claim
+            const docId = snapshot.docs[0].id;
+            await db.collection('claims').doc(docId).set(newClaim);
+            return res.status(200).json({ message: "Claim resubmitted successfully", claimId: docId });
+        } else {
+            // Save new claim
+            const docRef = await db.collection('claims').add(newClaim);
+            return res.status(201).json({
+                message: "Claim submitted successfully",
+                claimId: docRef.id
+            });
+        }
     } catch (error) {
         console.error("Error submitting claim:", error);
         return res.status(500).json({ message: "Server error" });
@@ -322,11 +356,6 @@ app.post('/bankUpdate', async (req, res) => {
         console.error('Error updating bank details:', error);
         return res.status(500).json({ success: false, message: 'Server error' });
     }
-});
-
-app.use(express.static(path.join(__dirname, "../dist")));
-app.use((req, res) => {
-  res.sendFile(path.join(__dirname, "../dist", "index.html"));
 });
 
 
