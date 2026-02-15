@@ -121,7 +121,7 @@ const MonthlyClaimForm = () => {
             const year = prevMonthDate.getFullYear().toString();
 
             try {
-                const response = await fetch(`http://localhost:5000/api/claims/status?email=${storedUser.email}&month=${month}&year=${year}`);
+                const response = await fetch(`https://trf-scholar-2.onrender.com/api/claims/status?email=${storedUser.email}&month=${month}&year=${year}`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.submitted) {
@@ -282,7 +282,7 @@ const MonthlyClaimForm = () => {
         };
 
         try {
-            const response = await fetch('http://localhost:5000/api/claims', {
+            const response = await fetch('https://trf-scholar-2.onrender.com/api/claims', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
