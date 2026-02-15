@@ -81,8 +81,8 @@ app.post('/api/claims', async (req, res) => {
         hodRejectionReason,
         isDlcApproved,
         dlcRejectionReason,
-        isDeanApproved,
-        deanRejectionReason,
+        isadminApproved,
+        adminRejectionReason,
         resubmission_remarks
     } = req.body;
 
@@ -108,8 +108,8 @@ app.post('/api/claims', async (req, res) => {
             hodRejectionReason: hodRejectionReason || null,
             isDlcApproved: isDlcApproved || 'pending',
             dlcRejectionReason: dlcRejectionReason || null,
-            isDeanApproved: isDeanApproved || 'pending',
-            deanRejectionReason: deanRejectionReason || null,
+            isadminApproved: isadminApproved || 'pending',
+            adminRejectionReason: adminRejectionReason || null,
             resubmission_remarks: resubmission_remarks || null,
             created_at: admin.firestore.FieldValue.serverTimestamp()
         };
