@@ -23,8 +23,8 @@ const Login = () => {
 
     const data = await response.json();
 
-    console.log("Response status:", response.status);
-    console.log("Response data:", data);
+    //console.log("Response status:", response.status);
+    //console.log("Response data:", data);
 
     if (!response.ok) {
       alert(data.message || "Login failed");
@@ -33,7 +33,7 @@ const Login = () => {
 
     // 🔥 THIS IS THE KEY LINE
     localStorage.setItem("user", JSON.stringify(data.user));
-    console.log("Stored in localStorage:", localStorage.getItem("user"));
+    //console.log("Stored in localStorage:", localStorage.getItem("user"));
 
     if (data.user.role === "admin") {
       navigate("Dashboard");
