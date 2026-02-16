@@ -154,8 +154,8 @@ const MonthlyClaimForm = () => {
                                     progressReport: claim.progress_report || prev.progressReport
                                 }));
                             }
-                        } else if (statuses.every(s => s === 'accepted')) {
-                            setClaimStatus('accepted');
+                        } else if (statuses.every(s => s === 'approved')) {
+                            setClaimStatus('approved');
                         } else {
                             setClaimStatus('submitted');
                         }
@@ -450,22 +450,22 @@ const MonthlyClaimForm = () => {
                             <div style={{ display: 'grid', gap: '1rem' }}>
                                 {[
                                     { role: 'Supervisor', status: claimDetails?.isSupervisorApproved || 'pending' },
-                                    { role: 'HoD', status: claimDetails?.isHodApproved || 'pending' },
                                     { role: 'DLC', status: claimDetails?.isDlcApproved || 'pending' },
+                                    { role: 'HoD', status: claimDetails?.isHodApproved || 'pending' },
                                     { role: 'Dean', status: claimDetails?.isadminApproved || 'pending' }
                                 ].map((item, index) => (
                                     <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', backgroundColor: '#f9fafb', borderRadius: '0.5rem' }}>
                                         <span style={{ fontWeight: 500 }}>{item.role}</span>
                                         <span style={{
-                                            backgroundColor: item.status === 'accepted' ? '#dcfce7' : item.status === 'rejected' ? '#fee2e2' : '#fef3c7',
-                                            color: item.status === 'accepted' ? '#166534' : item.status === 'rejected' ? '#991b1b' : '#92400e',
+                                            backgroundColor: item.status === 'approved' ? '#dcfce7' : item.status === 'rejected' ? '#fee2e2' : '#fef3c7',
+                                            color: item.status === 'approved' ? '#166534' : item.status === 'rejected' ? '#991b1b' : '#92400e',
                                             padding: '0.25rem 0.75rem', borderRadius: '9999px', fontSize: '0.875rem', fontWeight: 500, textTransform: 'capitalize'
                                         }}>{item.status}</span>
                                     </div>
                                 ))}
                             </div>
                         </div>
-                    ) : claimStatus === 'accepted' ? (
+                    ) : claimStatus === 'approved' ? (
                         <div className="card" style={{ padding: '2rem', textAlign: 'center' }}>
                             <h2 style={{ color: '#10b981' }}>Claim Accepted</h2>
                             <p>Your claim for {formData.claimPeriod.month} {formData.claimPeriod.year} has been accepted.</p>
