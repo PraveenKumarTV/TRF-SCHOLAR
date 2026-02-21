@@ -127,6 +127,31 @@ const MonthlyClaimForm = () => {
                     if (data.submitted) {
                         setClaimDetails(data.claim);
                         const claim = data.claim || {};
+                        
+                        // Populate form data if available
+                        if (claim.leave_details) {
+                            setFormData(prev => ({
+                                ...prev,
+                                leaveDetails: {
+                                    ...prev.leaveDetails,
+                                    thisMonth: {
+                                        cl: claim.leave_details.cl || 0,
+                                        llp: claim.leave_details.llp || 0,
+                                        od: claim.leave_details.od || 0
+                                    }
+                                },
+                                researchProgress: claim.research_progress || prev.researchProgress,
+                                workloadDetails: claim.trf_workload || prev.workloadDetails,
+                                attendanceCertificate: claim.attendance_certificate || prev.attendanceCertificate,
+                                progressReport: claim.progress_report || prev.progressReport,
+                                declarations: {
+                                    noOtherFellowship: true,
+                                    abidesGuidelines: true,
+                                    informationTrue: true
+                                }
+                            }));
+                        }
+
                         const statuses = [
                             claim.isSupervisorApproved || 'pending',
                             claim.isHodApproved || 'pending',
@@ -136,24 +161,6 @@ const MonthlyClaimForm = () => {
 
                         if (statuses.includes('rejected')) {
                             setClaimStatus('rejected');
-                            // Populate form data for resubmission
-                            if (claim.leave_details) {
-                                setFormData(prev => ({
-                                    ...prev,
-                                    leaveDetails: {
-                                        ...prev.leaveDetails,
-                                        thisMonth: {
-                                            cl: claim.leave_details.cl || 0,
-                                            llp: claim.leave_details.llp || 0,
-                                            od: claim.leave_details.od || 0
-                                        }
-                                    },
-                                    researchProgress: claim.research_progress || prev.researchProgress,
-                                    workloadDetails: claim.trf_workload || prev.workloadDetails,
-                                    attendanceCertificate: claim.attendance_certificate || prev.attendanceCertificate,
-                                    progressReport: claim.progress_report || prev.progressReport
-                                }));
-                            }
                         } else if (statuses.every(s => s === 'approved')) {
                             setClaimStatus('approved');
                         } else {
@@ -450,8 +457,8 @@ const MonthlyClaimForm = () => {
                             <div style={{ display: 'grid', gap: '1rem' }}>
                                 {[
                                     { role: 'Supervisor', status: claimDetails?.isSupervisorApproved || 'pending' },
-                                    { role: 'DLC', status: claimDetails?.isDlcApproved || 'pending' },
                                     { role: 'HoD', status: claimDetails?.isHodApproved || 'pending' },
+                                    { role: 'DLC', status: claimDetails?.isDlcApproved || 'pending' },
                                     { role: 'Dean', status: claimDetails?.isadminApproved || 'pending' }
                                 ].map((item, index) => (
                                     <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', backgroundColor: '#f9fafb', borderRadius: '0.5rem' }}>
@@ -463,6 +470,11 @@ const MonthlyClaimForm = () => {
                                         }}>{item.status}</span>
                                     </div>
                                 ))}
+                            </div>
+                            <div style={{ marginTop: '2rem', textAlign: 'center' }}>
+                                <button type="button" onClick={generatePDF} className="btn-primary">
+                                    Generate PDF
+                                </button>
                             </div>
                         </div>
                     ) : claimStatus === 'approved' ? (
@@ -748,7 +760,9 @@ const MonthlyClaimForm = () => {
                         <button type="submit" className="btn-primary" disabled={loading || !pdfGenerated}>{loading ? 'Submitting...' : 'Submit Claim'}</button>
                     </div>
                 </form>
-
+            </div>
+            </>
+    )}
                 {/* Hidden PDF Template */}
                 <div style={{ display: 'none' }}>
                     <div ref={pdfRef} style={{ padding: '20px', fontFamily: 'Arial, sans-serif', fontSize: '11px', lineHeight: '1.3' }}>
@@ -897,9 +911,6 @@ const MonthlyClaimForm = () => {
                         </div>
                     </div>
                 </div>
-            </div>
-            </>
-    )}
                 </div>
                 
             </main>
