@@ -943,6 +943,15 @@ const MonthlyClaimForm = () => {
                                         <p style={{ margin: '3px 0' }}>Signature of Assoc. Dean</p>
                                     </div>
                                 </div>
+
+                                <div style={{ marginTop: '10px', textAlign: 'center', paddingTop: '10px', borderTop: '1px dotted #000' }}>
+                                    <img 
+                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`https://tcetrf.web.app/verifyclaim/${storedUser.email}/${formData.claimPeriod.month}/${formData.claimPeriod.year}`)}`} 
+                                        alt="Verification QR Code" 
+                                        style={{ width: '80px', height: '80px' }} 
+                                    />
+                                    <p style={{ fontSize: '9px', margin: '5px 0 0 0' }}>{`https://tcetrf.web.app/verifyclaim/${storedUser.email}/${formData.claimPeriod.month}/${formData.claimPeriod.year}`}</p>
+                                </div>
                             </div>
                     
                         </div>
