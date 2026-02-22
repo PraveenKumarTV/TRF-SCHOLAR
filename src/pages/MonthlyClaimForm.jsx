@@ -14,6 +14,7 @@ const MonthlyClaimForm = () => {
     // Get user details from localStorage
     const storedUser = JSON.parse(localStorage.getItem('user')) || {};
     const pdfRef = useRef();
+    const [balCl, setBalCl] = useState(storedUser.balCl !== undefined ? storedUser.balCl : 12);
 
     const handleLogout = () => {
         localStorage.removeItem('user');
@@ -114,6 +115,24 @@ const MonthlyClaimForm = () => {
     }, [navigate]);
 
     useEffect(() => {
+        const fetchBalCl = async () => {
+            if (storedUser.email) {
+                try {
+                    const response = await fetch(`https://trf-scholar-2.onrender.com/scholar/getBalCl?email=${storedUser.email}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.balCl !== undefined) {
+                            setBalCl(data.balCl);
+                            const updatedUser = { ...storedUser, balCl: data.balCl };
+                            localStorage.setItem('user', JSON.stringify(updatedUser));
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error fetching balCl:", error);
+                }
+            }
+        };
+        fetchBalCl();
         const fetchClaimStatus = async () => {
             if (!storedUser.email) return;
             
@@ -126,6 +145,7 @@ const MonthlyClaimForm = () => {
                     const data = await response.json();
                     if (data.submitted) {
                         setClaimDetails(data.claim);
+                        localStorage.setItem('claimDetails', JSON.stringify(data.claim));
                         const claim = data.claim || {};
                         
                         // Populate form data if available
@@ -140,6 +160,7 @@ const MonthlyClaimForm = () => {
                                         od: claim.leave_details.od || 0
                                     }
                                 },
+                                claimAmount: claim.claim_amount !== undefined ? claim.claim_amount : prev.claimAmount,
                                 researchProgress: claim.research_progress || prev.researchProgress,
                                 workloadDetails: claim.trf_workload || prev.workloadDetails,
                                 attendanceCertificate: claim.attendance_certificate || prev.attendanceCertificate,
@@ -221,9 +242,9 @@ const MonthlyClaimForm = () => {
         let newCl = cl;
         let newLlp = llp;
 
-        if (cl > 15) {
-            const excess = cl - 15;
-            newCl = 15;
+        if (cl > balCl) {
+            const excess = cl - balCl;
+            newCl = balCl;
             newLlp = llp + excess;
             shouldUpdate = true;
         }
@@ -245,7 +266,7 @@ const MonthlyClaimForm = () => {
                 claimAmount: newAmount
             }));
         }
-    }, [formData.leaveDetails.thisMonth.cl, formData.leaveDetails.thisMonth.llp, formData.claimPeriod.month, formData.claimPeriod.year]);
+    }, [formData.leaveDetails.thisMonth.cl, formData.leaveDetails.thisMonth.llp, formData.claimPeriod.month, formData.claimPeriod.year, balCl]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -296,6 +317,22 @@ const MonthlyClaimForm = () => {
             });
 
             if (response.ok) {
+                const usedCl = formData.leaveDetails.thisMonth.cl;
+                if (usedCl > 0) {
+                    try {
+                        await fetch('https://trf-scholar-2.onrender.com/scholar/updateBalCl', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email: storedUser.email, usedCl })
+                        });
+                        const newBal = balCl - usedCl;
+                        setBalCl(newBal);
+                        const updatedUser = { ...storedUser, balCl: newBal };
+                        localStorage.setItem('user', JSON.stringify(updatedUser));
+                    } catch (err) {
+                        console.error("Error updating balCl:", err);
+                    }
+                }
                 alert('Claim submitted successfully!');
                 setClaimStatus('submitted');
                 setClaimDetails({
@@ -606,7 +643,7 @@ const MonthlyClaimForm = () => {
 
                     {/* Section 2: Leave Details */}
                     <div className="form-section">
-                        <h3 className="section-title">8. Leave Details</h3>
+                        <h3 className="section-title">8. Leave Details (Balance CL: {balCl} | Remaining: {balCl - formData.leaveDetails.thisMonth.cl})</h3>
                         <table className="leave-table">
                             <thead>
                                 <tr>
@@ -801,16 +838,16 @@ const MonthlyClaimForm = () => {
                                 <tbody>
                                     <tr>
                                         <td style={{ border: '1px solid #000', padding: '4px' }}>This Month</td>
-                                        <td style={{ border: '1px solid #000', padding: '4px', textAlign: 'center' }}>{formData.leaveDetails.thisMonth.cl}</td>
-                                        <td style={{ border: '1px solid #000', padding: '4px', textAlign: 'center' }}>{formData.leaveDetails.thisMonth.llp}</td>
-                                        <td style={{ border: '1px solid #000', padding: '4px', textAlign: 'center' }}>{formData.leaveDetails.thisMonth.od}</td>
+                                        <td style={{ border: '1px solid #000', padding: '4px', textAlign: 'center' }}>{claimDetails?.leave_details?.cl !== undefined ? claimDetails.leave_details.cl : formData.leaveDetails.thisMonth.cl}</td>
+                                        <td style={{ border: '1px solid #000', padding: '4px', textAlign: 'center' }}>{claimDetails?.leave_details?.llp !== undefined ? claimDetails.leave_details.llp : formData.leaveDetails.thisMonth.llp}</td>
+                                        <td style={{ border: '1px solid #000', padding: '4px', textAlign: 'center' }}>{claimDetails?.leave_details?.od !== undefined ? claimDetails.leave_details.od : formData.leaveDetails.thisMonth.od}</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
 
                         <div style={{ marginBottom: '10px' }}>
-                            <p style={{ margin: '5px 0', fontSize: '12px' }}><strong>Claim Amount:</strong> Rs. {formData.claimAmount}/-</p>
+                            <p style={{ margin: '5px 0', fontSize: '12px' }}><strong>Claim Amount:</strong> Rs. {claimDetails?.claim_amount !== undefined ? claimDetails.claim_amount : formData.claimAmount}/-</p>
                         </div>
 
                         <div style={{ marginBottom: '10px' }}>
@@ -879,7 +916,7 @@ const MonthlyClaimForm = () => {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: '10px', fontSize: '10px' }}>
                                     <div style={{ width: '48%' }}>
                                         <p style={{ margin: '3px 0' }}><strong>Supervisor Remarks:</strong></p>
-                                        <p style={{ margin: '3px 0' }}>Satisfactory / Not Satisfactory</p>
+                                        <p style={{ margin: '3px 0' }}>{claimDetails?.['SupervisorRemarks(ResearchProgress)'] || 'Satisfactory / Not Satisfactory'}</p>
                                         <br />
                                         <p style={{ margin: '3px 0' }}>__________________</p>
                                         <p style={{ margin: '3px 0' }}>Signature</p>
@@ -887,7 +924,7 @@ const MonthlyClaimForm = () => {
                                     <div style={{ display: 'flex', justifyContent: 'flex-start', width: '48%' }}>
   <div>
     <p style={{ margin: '6px 0' }}><strong>HoD Remarks:</strong></p>
-    <p style={{ margin: '6px 0' }}>Recommended / Not Recommended</p>
+    <p style={{ margin: '6px 0' }}>{claimDetails?.['HodRemarks(Recommendation)'] || 'Recommended / Not Recommended'}</p>
     <br />
     <p style={{ margin: '3px 0' }}>__________________</p>
     <p style={{ margin: '3px 0' }}>Signature</p>
