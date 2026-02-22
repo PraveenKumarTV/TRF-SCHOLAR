@@ -357,6 +357,52 @@ app.post('/bankUpdate', async (req, res) => {
         return res.status(500).json({ success: false, message: 'Server error' });
     }
 });
+app.get('/scholar/getBalCl', async (req, res) => {
+    const { email } = req.query;
+    if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+    }
+    try {
+        const snapshot = await db.collection('scholarDetails').where('email', '==', email).get();
+        if (snapshot.empty) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        const doc = snapshot.docs[0];
+        const userData = doc.data();
+        // Default to 12 if balCl is not set in DB
+        const balCl = userData.balCl !== undefined ? userData.balCl : 12;
+        return res.status(200).json({ balCl });
+    } catch (error) {
+        console.error("Error fetching balCl:", error);
+        return res.status(500).json({ message: "Server error" });
+    }
+});
+
+app.post('/scholar/updateBalCl', async (req, res) => {
+    const { email, usedCl } = req.body;
+    if (!email || usedCl === undefined) {
+        return res.status(400).json({ message: "Email and usedCl are required" });
+    }
+    try {
+        const snapshot = await db.collection('scholarDetails').where('email', '==', email).get();
+        if (snapshot.empty) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        const doc = snapshot.docs[0];
+        const currentBal = doc.data().balCl !== undefined ? doc.data().balCl : 12;
+        const newBal = currentBal - parseInt(usedCl);
+
+        await db.collection('scholarDetails').doc(doc.id).update({
+            balCl: newBal,
+            updated_at: admin.firestore.FieldValue.serverTimestamp()
+        });
+        return res.status(200).json({ message: "Balance updated successfully", balCl: newBal });
+    } catch (error) {
+        console.error("Error updating balCl:", error);
+        return res.status(500).json({ message: "Server error" });
+    }
+});
+
 app.use(express.static(path.join(__dirname, "../dist")));
 app.use((req, res) => {
   res.sendFile(path.join(__dirname, "../dist", "index.html"));
