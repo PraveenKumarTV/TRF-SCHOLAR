@@ -201,8 +201,8 @@ const Publications = () => {
             };
 
             const url = editingId 
-                ? `https://tce-scholar-2.onrender.com/publications/${editingId}`
-                : 'https://tce-scholar-2.onrender.com/publications';
+                ? `https://trf-scholar-2.onrender.com/publications/${editingId}`
+                : 'https://trf-scholar-2.onrender.com/publications';
             
             const method = editingId ? 'PUT' : 'POST';
 
@@ -238,7 +238,7 @@ const Publications = () => {
         if (!window.confirm('Are you sure you want to delete this publication?')) return;
 
         try {
-            const response = await fetch(`https://tce-scholar-2.onrender.com/publications/${id}`, {
+            const response = await fetch(`https://trf-scholar-2.onrender.com/publications/${id}`, {
                 method: 'DELETE',
             });
 
