@@ -14,7 +14,7 @@ const MonthlyClaimForm = () => {
     // Get user details from localStorage
     const storedUser = JSON.parse(localStorage.getItem('user')) || {};
     const pdfRef = useRef();
-    const [balCl, setBalCl] = useState(storedUser.balCl !== undefined ? storedUser.balCl : 12);
+    const [balCL, setBalCl] = useState(storedUser.balCL !== undefined ? storedUser.balCL : 12);
 
     const handleLogout = () => {
         localStorage.removeItem('user');
@@ -122,8 +122,8 @@ const MonthlyClaimForm = () => {
                     if (response.ok) {
                         const data = await response.json();
                         if (data.balCl !== undefined) {
-                            setBalCl(data.balCl);
-                            const updatedUser = { ...storedUser, balCl: data.balCl };
+                            setBalCl(data.balCL);
+                            const updatedUser = { ...storedUser, balCL: data.balCL };
                             localStorage.setItem('user', JSON.stringify(updatedUser));
                         }
                     }
