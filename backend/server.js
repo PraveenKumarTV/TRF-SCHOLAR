@@ -370,10 +370,10 @@ app.get('/scholar/getBalCl', async (req, res) => {
         const doc = snapshot.docs[0];
         const userData = doc.data();
         // Default to 12 if balCl is not set in DB
-        const balCl = userData.balCl !== undefined ? userData.balCl : 12;
+        const balCl = userData.balCL !== undefined ? userData.balCL : 12;
         return res.status(200).json({ balCl });
     } catch (error) {
-        console.error("Error fetching balCl:", error);
+        console.error("Error fetching balCL:", error);
         return res.status(500).json({ message: "Server error" });
     }
 });
@@ -389,14 +389,14 @@ app.post('/scholar/updateBalCl', async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
         const doc = snapshot.docs[0];
-        const currentBal = doc.data().balCl !== undefined ? doc.data().balCl : 12;
+        const currentBal = doc.data().balCL !== undefined ? doc.data().balCL : 12;
         const newBal = currentBal - parseInt(usedCl);
 
         await db.collection('scholarDetails').doc(doc.id).update({
-            balCl: newBal,
+            balCL: newBal,
             updated_at: admin.firestore.FieldValue.serverTimestamp()
         });
-        return res.status(200).json({ message: "Balance updated successfully", balCl: newBal });
+        return res.status(200).json({ message: "Balance updated successfully", balCL: newBal });
     } catch (error) {
         console.error("Error updating balCl:", error);
         return res.status(500).json({ message: "Server error" });
