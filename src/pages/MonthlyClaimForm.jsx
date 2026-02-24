@@ -494,8 +494,8 @@ const MonthlyClaimForm = () => {
                             <div style={{ display: 'grid', gap: '1rem' }}>
                                 {[
                                     { role: 'Supervisor', status: claimDetails?.isSupervisorApproved || 'pending' },
-                                    { role: 'HoD', status: claimDetails?.isHodApproved || 'pending' },
                                     { role: 'DLC', status: claimDetails?.isDlcApproved || 'pending' },
+                                    { role: 'HoD', status: claimDetails?.isHodApproved || 'pending' },
                                     { role: 'Dean', status: claimDetails?.isadminApproved || 'pending' }
                                 ].map((item, index) => (
                                     <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', backgroundColor: '#f9fafb', borderRadius: '0.5rem' }}>
@@ -694,11 +694,11 @@ const MonthlyClaimForm = () => {
                         </h3>
                         <div className="form-row">
                             <div className="form-group half-width">
-                                <label>Attendance Certificate Link *</label>
+                                <label>Attendance Report Link *</label>
                                 <input type="text" name="attendanceCertificate" value={formData.attendanceCertificate || ''} onChange={(e) => setFormData(prev => ({ ...prev, attendanceCertificate: e.target.value }))} placeholder="Paste Google Drive link" required />
                             </div>
                             <div className="form-group half-width">
-                                <label>Progress Report Link *</label>
+                                <label>Workload Report Link *</label>
                                 <input type="text" name="progressReport" value={formData.progressReport || ''} onChange={(e) => setFormData(prev => ({ ...prev, progressReport: e.target.value }))} placeholder="Paste Google Drive link" required />
                             </div>
                         </div>
