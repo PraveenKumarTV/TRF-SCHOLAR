@@ -779,7 +779,7 @@ const MonthlyClaimForm = () => {
                         <div className="declaration-item">
                             <label className="checkbox-label">
                                 <input type="checkbox" checked={formData.declarations.abidesGuidelines} onChange={() => handleDeclarationChange('abidesGuidelines')} />
-                                <span>2. I abide by the TRF guidelines dated 10.01.2025.</span>
+                                <span>2. I abide by the TRF guidelines dated 01.01.2026.</span>
                             </label>
                         </div>
                         <div className="declaration-item">
