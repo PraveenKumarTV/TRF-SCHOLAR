@@ -121,7 +121,7 @@ const MonthlyClaimForm = () => {
                     const response = await fetch(`https://trf-scholar-2.onrender.com/scholar/getBalCl?email=${storedUser.email}`);
                     if (response.ok) {
                         const data = await response.json();
-                        if (data.balCl !== undefined) {
+                        if (data.balCL !== undefined) {
                             setBalCl(data.balCL);
                             const updatedUser = { ...storedUser, balCL: data.balCL };
                             localStorage.setItem('user', JSON.stringify(updatedUser));
@@ -242,9 +242,9 @@ const MonthlyClaimForm = () => {
         let newCl = cl;
         let newLlp = llp;
 
-        if (cl > balCl) {
-            const excess = cl - balCl;
-            newCl = balCl;
+        if (cl > balCL) {
+            const excess = cl - balCL;
+            newCl = balCL;
             newLlp = llp + excess;
             shouldUpdate = true;
         }
@@ -266,7 +266,7 @@ const MonthlyClaimForm = () => {
                 claimAmount: newAmount
             }));
         }
-    }, [formData.leaveDetails.thisMonth.cl, formData.leaveDetails.thisMonth.llp, formData.claimPeriod.month, formData.claimPeriod.year, balCl]);
+    }, [formData.leaveDetails.thisMonth.cl, formData.leaveDetails.thisMonth.llp, formData.claimPeriod.month, formData.claimPeriod.year, balCL]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -325,9 +325,9 @@ const MonthlyClaimForm = () => {
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ email: storedUser.email, usedCl })
                         });
-                        const newBal = balCl - usedCl;
+                        const newBal = balCL - usedCl;
                         setBalCl(newBal);
-                        const updatedUser = { ...storedUser, balCl: newBal };
+                        const updatedUser = { ...storedUser, balCL: newBal };
                         localStorage.setItem('user', JSON.stringify(updatedUser));
                     } catch (err) {
                         console.error("Error updating balCl:", err);
@@ -643,7 +643,7 @@ const MonthlyClaimForm = () => {
 
                     {/* Section 2: Leave Details */}
                     <div className="form-section">
-                        <h3 className="section-title">8. Leave Details (Balance CL: {balCl} | Remaining: {balCl - formData.leaveDetails.thisMonth.cl})</h3>
+                        <h3 className="section-title">8. Leave Details (Balance CL: {balCL} | Remaining: {balCL - formData.leaveDetails.thisMonth.cl})</h3>
                         <table className="leave-table">
                             <thead>
                                 <tr>
