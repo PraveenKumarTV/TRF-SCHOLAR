@@ -118,7 +118,7 @@ const MonthlyClaimForm = () => {
         const fetchBalCl = async () => {
             if (storedUser.email) {
                 try {
-                    const response = await fetch(`https://trf-scholar-2.onrender.com/scholar/getBalCl?email=${storedUser.email}`);
+                    const response = await fetch(`https://trf-scholar-9u5j.onrender.com/scholar/getBalCl?email=${storedUser.email}`);
                     if (response.ok) {
                         const data = await response.json();
                         if (data.balCL !== undefined) {
@@ -140,7 +140,7 @@ const MonthlyClaimForm = () => {
             const year = prevMonthDate.getFullYear().toString();
 
             try {
-                const response = await fetch(`https://trf-scholar-2.onrender.com/api/claims/status?email=${storedUser.email}&month=${month}&year=${year}`);
+                const response = await fetch(`https://trf-scholar-9u5j.onrender.com/api/claims/status?email=${storedUser.email}&month=${month}&year=${year}`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.submitted) {
@@ -310,7 +310,7 @@ const MonthlyClaimForm = () => {
         };
 
         try {
-            const response = await fetch('https://trf-scholar-2.onrender.com/api/claims', {
+            const response = await fetch('https://trf-scholar-9u5j.onrender.com/api/claims', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -320,7 +320,7 @@ const MonthlyClaimForm = () => {
                 const usedCl = formData.leaveDetails.thisMonth.cl;
                 if (usedCl > 0) {
                     try {
-                        await fetch('https://trf-scholar-2.onrender.com/scholar/updateBalCl', {
+                        await fetch('https://trf-scholar-9u5j.onrender.com/scholar/updateBalCl', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ email: storedUser.email, usedCl })
